@@ -16,18 +16,7 @@ class CustomCandleChart extends StatefulWidget {
   _CustomCandleChartState createState() => _CustomCandleChartState();
 }
 
-class _CustomCandleChartState extends State<CustomCandleChart>
-    with SingleTickerProviderStateMixin {
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void didUpdateWidget(CustomCandleChart oldWidget) {
-    super.didUpdateWidget(oldWidget);
-  }
+class _CustomCandleChartState extends State<CustomCandleChart>{
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +27,8 @@ class _CustomCandleChartState extends State<CustomCandleChart>
           dateFormat: DateFormat.MMM(),
           interval: 3,
           intervalType: DateTimeIntervalType.months,
-          minimum: DateTime(2016, 01, 01),
-          maximum: DateTime(2016, 10, 01),
+          minimum: widget?.chartData?.first?.x ?? DateTime(2016, 01, 01),
+          maximum: widget?.chartData?.last?.x ?? DateTime(2016, 10, 01),
           majorGridLines: MajorGridLines(width: 0)),
       primaryYAxis: NumericAxis(
           minimum: 140,

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_deriv_api/api/common/tick/ohlc.dart';
+import 'package:flutter_deriv_api/api/common/tick/tick_base.dart';
 import 'package:flutter_deriv_api/api/common/tick/tick_history.dart';
 import 'package:flutter_deriv_api/api/common/tick/tick_history_subscription.dart';
 import 'package:flutter_deriv_api/basic_api/generated/api.dart';
@@ -11,7 +13,8 @@ class CandleChart extends StatefulWidget {
 }
 
 class _CandleChartState extends State<CandleChart> {
-  final List<ChartSampleData> _chartData = <ChartSampleData>[];
+
+  final List<ChartSampleData> _chartData = [];
 
   @override
   void initState() {
@@ -24,12 +27,12 @@ class _CandleChartState extends State<CandleChart> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomCandleChart(
-        chartData: _chartData,
       ),
     );
   }
 
   void _getTickStream() async {
+    await Future.delayed(const Duration(seconds: 2));
     final TickHistorySubscription subscription =
         await TickHistory.fetchTicksAndSubscribe(
       TicksHistoryRequest(
@@ -41,8 +44,22 @@ class _CandleChartState extends State<CandleChart> {
         style: 'candles',
       ),
     );
-  }
 
+    subscription.tickStream.listen((TickBase tick) {
+      final OHLC ohlc = tick;
+      if (ohlc != null) {
+        setState(() {
+          _chartData.add(ChartSampleData(
+            x: ohlc.epoch,
+            y: double.tryParse(ohlc.low),
+            yValue: double.tryParse(ohlc.high),
+            open: double.tryParse(ohlc.open),
+            close: double.tryParse(ohlc.close),
+          ));
+        });
+      }
+    });
+  }
 }
 
 /*
