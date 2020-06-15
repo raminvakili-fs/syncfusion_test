@@ -27,6 +27,12 @@ dependencies:
   syncfusion_flutter_sliders: ^18.1.52-beta
   syncfusion_flutter_pdf: ^18.1.52-beta
   syncfusion_flutter_barcodes: ^18.1.52-beta
+  flutter_deriv_api:
+    git:
+      url: git@github.com:regentmarkets/flutter-deriv-api.git
+      ref: dev
+
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -8,13 +8,9 @@ class CustomCandleChart extends StatefulWidget {
   const CustomCandleChart({
     Key key,
     this.chartData,
-    this.onZoomStart,
-    this.onZoomEnd,
   }) : super(key: key);
 
   final List<ChartSampleData> chartData;
-  final VoidCallback onZoomStart;
-  final VoidCallback onZoomEnd;
 
   @override
   _CustomCandleChartState createState() => _CustomCandleChartState();
@@ -56,12 +52,6 @@ class _CustomCandleChartState extends State<CustomCandleChart>
         enable: true,
         activationMode: ActivationMode.singleTap,
       ),
-      onZoomStart: (_) {
-        widget.onZoomStart();
-      },
-      onZoomEnd: (_) {
-        widget.onZoomEnd();
-      },
       zoomPanBehavior:
           ZoomPanBehavior(enablePinching: true, enablePanning: true),
     );
