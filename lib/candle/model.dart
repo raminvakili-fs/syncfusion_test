@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 class ChartSampleData {
   ChartSampleData({
-    this.x,
-    this.y,
-    this.xValue,
-    this.yValue,
+    this.epoch,
+    this.low,
+    this.openTime,
+    this.high,
     this.yValue2,
     this.yValue3,
     this.pointColor,
@@ -15,10 +15,10 @@ class ChartSampleData {
     this.close,
   });
 
-  final dynamic x;
-  final num y;
-  final dynamic xValue;
-  final num yValue;
+  final dynamic epoch;
+  final num low;
+  final dynamic openTime;
+  final num high;
   final num yValue2;
   final num yValue3;
   final Color pointColor;

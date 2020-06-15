@@ -18,10 +18,10 @@ class CandleChart extends StatefulWidget {
 class _CandleChartState extends State<CandleChart> {
   final List<ChartSampleData> _chartData = [
     ChartSampleData(
-      x: DateTime(2016, 01, 11),
+      epoch: DateTime(2016, 01, 11),
       open: 98.97,
-      yValue: 101.19,
-      y: 95.36,
+      high: 101.19,
+      low: 95.36,
       close: 97.13,
     )
   ];
@@ -69,9 +69,9 @@ class _CandleChartState extends State<CandleChart> {
       if (ohlc != null) {
         setState(() {
           _chartData.add(ChartSampleData(
-            x: ohlc.epoch,
-            y: double.tryParse(ohlc.low),
-            yValue: double.tryParse(ohlc.high),
+            epoch: ohlc.epoch,
+            low: double.tryParse(ohlc.low),
+            high: double.tryParse(ohlc.high),
             open: double.tryParse(ohlc.open),
             close: double.tryParse(ohlc.close),
           ));
@@ -85,10 +85,10 @@ class _CandleChartState extends State<CandleChart> {
       setState(() {
         _chartData.add(
           ChartSampleData(
-            x: _chartData?.last?.x?.add(const Duration(days: 2)),
+            epoch: _chartData?.last?.epoch?.add(const Duration(days: 2)),
             open: _chartData.last.open + _getRandomValue(),
-            yValue: _chartData.last.yValue + _getRandomValue(),
-            y: _chartData.last.y + _getRandomValue(),
+            high: _chartData.last.high + _getRandomValue(),
+            low: _chartData.last.low + _getRandomValue(),
             close: _chartData.last.close + _getRandomValue(),
           ),
         );

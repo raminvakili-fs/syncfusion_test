@@ -4,7 +4,6 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 import 'model.dart';
 
-
 class CustomCandleChart extends StatefulWidget {
   const CustomCandleChart({
     Key key,
@@ -22,23 +21,22 @@ class CustomCandleChart extends StatefulWidget {
 }
 
 class _CustomCandleChartState extends State<CustomCandleChart> {
-
   @override
   Widget build(BuildContext context) {
     return SfCartesianChart(
       plotAreaBorderWidth: 0,
       title: ChartTitle(text: 'AAPL - 2016'),
       primaryXAxis: DateTimeAxis(
-          dateFormat: DateFormat.MMM(),
-          interval: 3,
-          intervalType: DateTimeIntervalType.months,
-          minimum: DateTime(2016, 01, 01),
-          maximum: DateTime(2016, 10, 01),
-          majorGridLines: MajorGridLines(width: 0)),
+          dateFormat: DateFormat.ms(),
+          interval: 10,
+          intervalType: DateTimeIntervalType.auto,
+          minimum: widget.chartData.first.epoch,
+//          maximum: widget.chartData.first.x.add(const Duration(days: 1)),
+          majorGridLines: MajorGridLines(width: 1)),
       primaryYAxis: NumericAxis(
-          minimum: 140,
-          maximum: 60,
-          interval: 20,
+//          minimum: 2000,
+//          maximum: 0,
+          interval: 1,
           labelFormat: '\${value}',
           axisLine: AxisLine(width: 0)),
       series: getCandleSeries(),
@@ -58,7 +56,6 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
   }
 
   List<CandleSeries<ChartSampleData, DateTime>> getCandleSeries() {
-
     return <CandleSeries<ChartSampleData, DateTime>>[
       CandleSeries<ChartSampleData, DateTime>(
           enableTooltip: true,
@@ -66,9 +63,9 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
           dataSource: widget.chartData,
           name: 'AAPL',
           animationDuration: 300,
-          xValueMapper: (ChartSampleData sales, _) => sales.x,
-          lowValueMapper: (ChartSampleData sales, _) => sales.y,
-          highValueMapper: (ChartSampleData sales, _) => sales.yValue,
+          xValueMapper: (ChartSampleData sales, _) => sales.epoch,
+          lowValueMapper: (ChartSampleData sales, _) => sales.low,
+          highValueMapper: (ChartSampleData sales, _) => sales.high,
           openValueMapper: (ChartSampleData sales, _) => sales.open,
           closeValueMapper: (ChartSampleData sales, _) => sales.close,
           dataLabelSettings: DataLabelSettings(isVisible: false))
