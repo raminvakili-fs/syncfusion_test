@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:flutter/material.dart';
 
-import 'util.dart';
+import '../util.dart';
 
 class LineLiveUpdate extends StatefulWidget {
   const LineLiveUpdate({Key key}) : super(key: key);
@@ -190,6 +190,7 @@ class _FrontPanelState extends State<FrontPanel> {
   List<AreaSeries<_ChartData, DateTime>> getLineSeries() {
     return <AreaSeries<_ChartData, DateTime>>[
       AreaSeries<_ChartData, DateTime>(
+        animationDuration: 300,
           dataSource: chartData1,
           xValueMapper: (_ChartData sales, _) => sales.time,
           yValueMapper: (_ChartData sales, _) => sales.sales,
