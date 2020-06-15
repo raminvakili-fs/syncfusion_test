@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_deriv_api/api/common/tick/ohlc.dart';
 import 'package:flutter_deriv_api/api/common/tick/tick_base.dart';
@@ -13,22 +16,38 @@ class CandleChart extends StatefulWidget {
 }
 
 class _CandleChartState extends State<CandleChart> {
+  final List<ChartSampleData> _chartData = [
+    ChartSampleData(
+      x: DateTime(2016, 01, 11),
+      open: 98.97,
+      yValue: 101.19,
+      y: 95.36,
+      close: 97.13,
+    )
+  ];
 
-  final List<ChartSampleData> _chartData = [];
+  Timer _timer;
+
+  final Random _random = Random();
 
   @override
   void initState() {
     super.initState();
-
+    _getMockedLiveData();
     _getTickStream();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomCandleChart(
-      ),
+      body: CustomCandleChart(),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _timer.cancel();
   }
 
   void _getTickStream() async {
@@ -60,15 +79,26 @@ class _CandleChartState extends State<CandleChart> {
       }
     });
   }
-}
 
-/*
-{
-  "ticks_history": "R_50",
-  "adjust_start_time": 1,
-  "count": 10,
-  "end": "latest",
-  "start": 1,
-  "style": "ticks"
+  void _getMockedLiveData() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      setState(() {
+        _chartData.add(
+          ChartSampleData(
+            x: _chartData?.last?.x?.add(const Duration(days: 2)),
+            open: _chartData.last.open + _getRandomValue(),
+            yValue: _chartData.last.yValue + _getRandomValue(),
+            y: _chartData.last.y + _getRandomValue(),
+            close: _chartData.last.close + _getRandomValue(),
+          ),
+        );
+      });
+    });
+  }
+
+  double _getRandomValue() {
+    return _random.nextBool()
+        ? _random.nextInt(10) + _random.nextDouble()
+        : -(_random.nextInt(10) + _random.nextDouble());
+  }
 }
- */
