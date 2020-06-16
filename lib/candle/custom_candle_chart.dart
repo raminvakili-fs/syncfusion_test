@@ -5,7 +5,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'model.dart';
 
 class CustomCandleChart extends StatefulWidget {
-  const CustomCandleChart({
+  CustomCandleChart({
     Key key,
     this.chartData,
     this.onZoomStart,
@@ -56,6 +56,7 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
   }
 
   List<CandleSeries<ChartSampleData, DateTime>> getCandleSeries() {
+    print('Number of candles: ${widget.chartData.length}');
     return <CandleSeries<ChartSampleData, DateTime>>[
       CandleSeries<ChartSampleData, DateTime>(
           enableTooltip: true,

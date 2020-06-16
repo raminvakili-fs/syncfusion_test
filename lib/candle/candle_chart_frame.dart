@@ -28,6 +28,8 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
     _getTickStream();
   }
 
+  TickBase _lastTick;
+
   void _getMockedLiveData() {
     Timer.periodic(const Duration(seconds: 2), (Timer timer) {
       ChartSampleData last = _chartData.removeLast();
@@ -49,7 +51,6 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
   }
 
   void _getTickStream() async {
-    await Future.delayed(const Duration(seconds: 2));
     final TickHistorySubscription subscription =
         await TickHistory.fetchTicksAndSubscribe(
       TicksHistoryRequest(
@@ -76,28 +77,25 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
 
     subscription.tickStream.listen((TickBase tick) {
       final OHLC ohlc = tick;
+      _lastTick = ohlc;
       if (ohlc != null) {
-        print(
-            'open: ${ohlc.open}, low: ${ohlc.low}, high: ${ohlc.high}, close: ${ohlc.close}');
+
+        final double newTickOpen = double.tryParse(ohlc.open);
+        final double newTickLow = double.tryParse(ohlc.low);
+        final double newTickHigh = double.tryParse(ohlc.high);
+        final double newTickClose = double.tryParse(ohlc.close);
+
+        if (_chartData.isNotEmpty && newTickOpen == _chartData.last.open) {
+          _chartData.removeLast();
+        }
 
         setState(() {
-          final double newTickOpen = double.tryParse(ohlc.open);
-          final double newTickLow = double.tryParse(ohlc.low);
-          final double newTickHigh = double.tryParse(ohlc.high);
-          final double newTickClose = double.tryParse(ohlc.close);
-
-          if (_chartData.isNotEmpty &&
-                  ohlc?.openTime == _chartData?.last?.openTime ??
-              false) {
-            _chartData.removeLast();
-          }
           _chartData.add(ChartSampleData(
             epoch: ohlc.epoch,
             low: newTickLow,
             high: newTickHigh,
             open: newTickOpen,
             close: newTickClose,
-            openTime: ohlc.openTime,
           ));
         });
       }
@@ -120,5 +118,11 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
               onZoomEnd: () => zooming = false,
             ),
     );
+  }
+
+  @override
+  void dispose() async {
+    await _lastTick?.unsubscribe();
+    super.dispose();
   }
 }
