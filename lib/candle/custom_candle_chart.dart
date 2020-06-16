@@ -10,9 +10,11 @@ class CustomCandleChart extends StatefulWidget {
     this.chartData,
     this.onZoomStart,
     this.onZoomEnd,
+    this.type,
   }) : super(key: key);
 
   final List<ChartSampleData> chartData;
+  final String type;
   final VoidCallback onZoomStart;
   final VoidCallback onZoomEnd;
 
@@ -23,53 +25,120 @@ class CustomCandleChart extends StatefulWidget {
 class _CustomCandleChartState extends State<CustomCandleChart> {
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Text('Tooltip: click oh point, CrossHair: Long press'),
+        Expanded(flex: 3, child: _buildMainChart()),
+        Expanded(flex: 1, child: _buildMACDChart()),
+      ],
+    );
+  }
+
+  SfCartesianChart _buildMainChart() {
     return SfCartesianChart(
-      plotAreaBorderWidth: 0,
-      title: ChartTitle(text: 'AAPL - 2016'),
-      primaryXAxis: DateTimeAxis(
-          dateFormat: DateFormat.ms(),
-          interval: 10,
-          intervalType: DateTimeIntervalType.auto,
-          minimum: widget.chartData.first.epoch.subtract(const Duration(minutes: 2)),
-          maximum: widget.chartData.first.epoch.add(const Duration(minutes: 20)),
-          majorGridLines: MajorGridLines(width: 1)),
-      primaryYAxis: NumericAxis(
+        plotAreaBorderWidth: 0,
+        title: ChartTitle(text: 'AAPL - 2016'),
+        indicators: <TechnicalIndicators<ChartSampleData, DateTime>>[
+          SmaIndicator<ChartSampleData, DateTime>(
+              seriesName: 'SMA', period: 2, valueField: 'close'),
+          AtrIndicator<ChartSampleData, DateTime>(period: 3, seriesName: 'ATR')
+        ],
+        primaryXAxis: DateTimeAxis(
+            dateFormat: DateFormat.ms(),
+            interval: 10,
+            intervalType: DateTimeIntervalType.auto,
+            minimum: widget.chartData.first.epoch
+                .subtract(const Duration(minutes: 2)),
+            maximum:
+                widget.chartData.first.epoch.add(const Duration(minutes: 40)),
+            majorGridLines: MajorGridLines(width: 1)),
+        primaryYAxis: NumericAxis(
 //          minimum: 2000,
 //          maximum: 0,
-          interval: 1,
-          labelFormat: '\${value}',
-          axisLine: AxisLine(width: 0)),
-      series: getCandleSeries(),
-      trackballBehavior: TrackballBehavior(
-        enable: true,
-        activationMode: ActivationMode.longPress,
-      ),
-      onZoomStart: (_) {
-        widget.onZoomStart();
-      },
-      onZoomEnd: (_) {
-        widget.onZoomEnd();
-      },
+            interval: 1,
+            labelFormat: '\${value}',
+            axisLine: AxisLine(width: 0)),
+        series: widget.type == 'candle' ? getCandleSeries() : getOHLCSeries(),
+        trackballBehavior: TrackballBehavior(
+          enable: true,
+          activationMode: ActivationMode.longPress,
+        ),
+        onZoomStart: (_) {
+          widget.onZoomStart();
+        },
+        onZoomEnd: (_) {
+          widget.onZoomEnd();
+        },
+        zoomPanBehavior:
+            ZoomPanBehavior(enablePinching: true, enablePanning: true),
+        tooltipBehavior: TooltipBehavior(
+            enable: true
+        ),
+        crosshairBehavior: CrosshairBehavior(
+            enable: true,
+            // Displays the crosshair on single tap
+            activationMode: ActivationMode.longPress));
+  }
+
+  SfCartesianChart _buildMACDChart() {
+    return SfCartesianChart(
+      indicators: <TechnicalIndicators<ChartSampleData, DateTime>>[
+        MacdIndicator<ChartSampleData, DateTime>(
+            longPeriod: 2, shortPeriod: 1, seriesName: 'HiloOpenClose')
+      ],
+//      primaryXAxis: DateTimeAxis(
+//          dateFormat: DateFormat.ms(),
+//          interval: 10,
+//          intervalType: DateTimeIntervalType.auto,
+//          minimum:
+//              widget.chartData.first.epoch.subtract(const Duration(minutes: 2)),
+//          maximum:
+//              widget.chartData.first.epoch.add(const Duration(minutes: 20)),
+//          majorGridLines: MajorGridLines(width: 1)),
+//      primaryYAxis: NumericAxis(
+////          minimum: 2000,
+////          maximum: 0,
+//          interval: 1,
+//          labelFormat: '\${value}',
+//          axisLine: AxisLine(width: 0)),
+      series: getCandleSeries(isVisible: false),
       zoomPanBehavior:
           ZoomPanBehavior(enablePinching: true, enablePanning: true),
     );
   }
 
-  List<CandleSeries<ChartSampleData, DateTime>> getCandleSeries() {
-    print('Number of candles: ${widget.chartData.length}');
-    return <CandleSeries<ChartSampleData, DateTime>>[
-      CandleSeries<ChartSampleData, DateTime>(
-          enableTooltip: true,
-          enableSolidCandles: true,
-          dataSource: widget.chartData,
-          name: 'AAPL',
-          animationDuration: 300,
-          xValueMapper: (ChartSampleData sales, _) => sales.epoch,
-          lowValueMapper: (ChartSampleData sales, _) => sales.low,
-          highValueMapper: (ChartSampleData sales, _) => sales.high,
-          openValueMapper: (ChartSampleData sales, _) => sales.open,
-          closeValueMapper: (ChartSampleData sales, _) => sales.close,
-          dataLabelSettings: DataLabelSettings(isVisible: false))
-    ];
-  }
+  List<CandleSeries<ChartSampleData, DateTime>> getCandleSeries({
+    bool isVisible = true,
+  }) =>
+      <CandleSeries<ChartSampleData, DateTime>>[
+        CandleSeries<ChartSampleData, DateTime>(
+            isVisible: isVisible,
+            enableTooltip: true,
+            enableSolidCandles: true,
+            dataSource: widget.chartData,
+            name: 'AAPL',
+            xValueMapper: (ChartSampleData sales, _) => sales.epoch,
+            lowValueMapper: (ChartSampleData sales, _) => sales.low,
+            highValueMapper: (ChartSampleData sales, _) => sales.high,
+            openValueMapper: (ChartSampleData sales, _) => sales.open,
+            closeValueMapper: (ChartSampleData sales, _) => sales.close,
+            dataLabelSettings: DataLabelSettings(isVisible: false))
+      ];
+
+  List<HiloOpenCloseSeries<ChartSampleData, DateTime>> getOHLCSeries({
+    bool isVisible = true,
+  }) =>
+      <HiloOpenCloseSeries<ChartSampleData, DateTime>>[
+        HiloOpenCloseSeries<ChartSampleData, DateTime>(
+            isVisible: isVisible,
+            enableTooltip: true,
+            dataSource: widget.chartData,
+            name: 'AAPL',
+            xValueMapper: (ChartSampleData sales, _) => sales.epoch,
+            lowValueMapper: (ChartSampleData sales, _) => sales.low,
+            highValueMapper: (ChartSampleData sales, _) => sales.high,
+            openValueMapper: (ChartSampleData sales, _) => sales.open,
+            closeValueMapper: (ChartSampleData sales, _) => sales.close,
+            dataLabelSettings: DataLabelSettings(isVisible: false))
+      ];
 }

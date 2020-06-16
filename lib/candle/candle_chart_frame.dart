@@ -20,7 +20,7 @@ class CandleChartFrame extends StatefulWidget {
 class _CandleChartFrameState extends State<CandleChartFrame> {
   final List<ChartSampleData> _chartData = <ChartSampleData>[];
 
-  final Random random = Random();
+  final Random _random = Random();
 
   @override
   void initState() {
@@ -29,14 +29,15 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
   }
 
   TickBase _lastTick;
+  String type = 'candle';
 
   void _getMockedLiveData() {
     Timer.periodic(const Duration(seconds: 2), (Timer timer) {
       ChartSampleData last = _chartData.removeLast();
 
-      double newClose = random.nextBool()
-          ? (last.close + random.nextInt(10) + random.nextDouble())
-          : (last.close - random.nextInt(10) + random.nextDouble());
+      double newClose = _random.nextBool()
+          ? (last.close + _random.nextInt(10) + _random.nextDouble())
+          : (last.close - _random.nextInt(10) + _random.nextDouble());
       ChartSampleData newLast = ChartSampleData(
           epoch: last.epoch,
           open: last.open,
@@ -56,7 +57,7 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
       TicksHistoryRequest(
         ticksHistory: 'R_50',
         adjustStartTime: 1,
-        count: 10,
+        count: 20,
         end: 'latest',
         start: 1,
         style: 'candles',
@@ -108,15 +109,56 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: _chartData.isEmpty
-          ? Center(
-              child: Text('Connecting to WS...'),
-            )
-          : CustomCandleChart(
-              chartData: _chartData,
-              onZoomStart: () => zooming = true,
-              onZoomEnd: () => zooming = false,
+      body: Stack(
+        children: <Widget>[
+          _chartData.isEmpty
+              ? Center(
+                  child: Text('Connecting to WS...'),
+                )
+              : CustomCandleChart(
+                  chartData: _chartData,
+                  onZoomStart: () => zooming = true,
+                  onZoomEnd: () => zooming = false,
+            type: type,
+                ),
+
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+//                  FlatButton(
+//                    child: Icon(Icons.show_chart),
+//                    onPressed: () {},
+//                    color: Colors.white10,
+//                  ),
+                  FlatButton(
+                    child: Icon(Icons.equalizer),
+                    onPressed: () {
+                      setState(() {
+                        type = 'candle';
+                      });
+                    },
+                    color: Colors.white10,
+                  ),
+                  FlatButton(
+                    child: Icon(Icons.swap_vert),
+                    onPressed: () {
+                      setState(() {
+                        type = 'ohlc';
+                      });
+                    },
+                    color: Colors.white10,
+                  ),
+                ],
+              ),
             ),
+          )
+        ],
+      ),
     );
   }
 
