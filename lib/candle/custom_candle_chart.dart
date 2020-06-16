@@ -30,8 +30,8 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
           dateFormat: DateFormat.ms(),
           interval: 10,
           intervalType: DateTimeIntervalType.auto,
-          minimum: widget.chartData.first.epoch,
-//          maximum: widget.chartData.first.x.add(const Duration(days: 1)),
+          minimum: widget.chartData.first.epoch.subtract(const Duration(minutes: 2)),
+          maximum: widget.chartData.first.epoch.add(const Duration(minutes: 20)),
           majorGridLines: MajorGridLines(width: 1)),
       primaryYAxis: NumericAxis(
 //          minimum: 2000,
@@ -42,7 +42,7 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
       series: getCandleSeries(),
       trackballBehavior: TrackballBehavior(
         enable: true,
-        activationMode: ActivationMode.singleTap,
+        activationMode: ActivationMode.longPress,
       ),
       onZoomStart: (_) {
         widget.onZoomStart();

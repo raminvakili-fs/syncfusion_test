@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_deriv_api/api/common/models/candle_model.dart';
 import 'package:flutter_deriv_api/api/common/tick/ohlc.dart';
 import 'package:flutter_deriv_api/api/common/tick/tick_base.dart';
 import 'package:flutter_deriv_api/api/common/tick/tick_history.dart';
@@ -24,7 +25,6 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
   @override
   void initState() {
     super.initState();
-
     _getTickStream();
   }
 
@@ -62,6 +62,18 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
       ),
     );
 
+    setState(() {
+      for (final CandleModel c in subscription.tickHistory.candles) {
+        _chartData.add(ChartSampleData(
+          open: c.open,
+          low: c.low,
+          high: c.high,
+          close: c.close,
+          epoch: c.epoch,
+        ));
+      }
+    });
+
     subscription.tickStream.listen((TickBase tick) {
       final OHLC ohlc = tick;
       if (ohlc != null) {
@@ -75,7 +87,8 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
           final double newTickClose = double.tryParse(ohlc.close);
 
           if (_chartData.isNotEmpty &&
-              ohlc.openTime == _chartData.last.openTime) {
+                  ohlc?.openTime == _chartData?.last?.openTime ??
+              false) {
             _chartData.removeLast();
           }
           _chartData.add(ChartSampleData(
