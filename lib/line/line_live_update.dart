@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:flutter/material.dart';
@@ -18,8 +19,8 @@ int wave1;
 int wave2, count = 1;
 
 class _LineLiveUpdateState extends State<LineLiveUpdate> {
-
   _LineLiveUpdateState();
+
   Timer timer;
 
   bool panelOpen;
@@ -50,12 +51,13 @@ class _LineLiveUpdateState extends State<LineLiveUpdate> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('Syncfusion Live Data!'), ),
+        appBar: AppBar(
+          title: Text('Syncfusion Live Data!'),
+        ),
         body: Padding(
           padding: const EdgeInsets.all(10),
           child: FrontPanel(),
-        )
-    );
+        ));
   }
 }
 
@@ -63,30 +65,23 @@ class FrontPanel extends StatefulWidget {
   //ignore: prefer_const_constructors_in_immutables
   FrontPanel();
 
-
-
   @override
   _FrontPanelState createState() => _FrontPanelState();
 }
 
 class _FrontPanelState extends State<FrontPanel> {
-
-
-
-  final List <Color> color = <Color>[];
-
+  final List<Color> color = <Color>[];
 
   final List<double> stops = <double>[];
 
   LinearGradient gradients;
 
-
-
-  _FrontPanelState(){
+  _FrontPanelState() {
     gradients = LinearGradient(colors: color, stops: stops);
   }
 
   Timer timer;
+  final Random random = Random();
 
   @override
   void initState() {
@@ -114,7 +109,13 @@ class _FrontPanelState extends State<FrontPanel> {
 
   void updateData(Timer timer) {
     setState(() {
-      chartData1.add(_ChartData(xAxis, generateNextRandomValue(chartData1.last.sales, 6)),);
+      chartData1.add(
+        _ChartData(
+          xAxis,
+          generateNextRandomValue(chartData1.last.sales, 6),
+          isMarked: random.nextInt(10) > 6,
+        ),
+      );
       xAxis = xAxis.add(Duration(seconds: 2));
     });
   }
@@ -134,23 +135,20 @@ class _FrontPanelState extends State<FrontPanel> {
     );
   }
 
-
   SfCartesianChart getLiveUpdateChart() {
     return SfCartesianChart(
       plotAreaBorderWidth: 0,
       primaryXAxis: DateTimeAxis(
           dateFormat: DateFormat.Hms(),
           intervalType: DateTimeIntervalType.seconds,
-          majorGridLines: MajorGridLines(width: 0)
-      ),
+          majorGridLines: MajorGridLines(width: 0)),
       primaryYAxis: NumericAxis(
-          axisLine: AxisLine(width: 0), majorTickLines: MajorTickLines(size: 0)),
+          axisLine: AxisLine(width: 0),
+          majorTickLines: MajorTickLines(size: 0)),
       series: getLineSeries(),
 
       zoomPanBehavior: ZoomPanBehavior(
-          enablePinching: true,
-          zoomMode: ZoomMode.x,
-          enablePanning: true),
+          enablePinching: true, zoomMode: ZoomMode.x, enablePanning: true),
 
       crosshairBehavior: CrosshairBehavior(
           enable: true,
@@ -158,7 +156,6 @@ class _FrontPanelState extends State<FrontPanel> {
           activationMode: ActivationMode.singleTap,
           shouldAlwaysShow: true,
           lineType: CrosshairLineType.both),
-
 
       tooltipBehavior: TooltipBehavior(
           enable: true,
@@ -190,14 +187,24 @@ class _FrontPanelState extends State<FrontPanel> {
   List<AreaSeries<_ChartData, DateTime>> getLineSeries() {
     return <AreaSeries<_ChartData, DateTime>>[
       AreaSeries<_ChartData, DateTime>(
-        animationDuration: 300,
+          animationDuration: 300,
           dataSource: chartData1,
           xValueMapper: (_ChartData sales, _) => sales.time,
           yValueMapper: (_ChartData sales, _) => sales.sales,
-        borderColor: Colors.blueGrey,
-        borderWidth: 2,
-        borderDrawMode: BorderDrawMode.top,
-        gradient: gradients,),
+          borderColor: Colors.blueGrey,
+          borderWidth: 2,
+          borderDrawMode: BorderDrawMode.top,
+          gradient: gradients,
+          dataLabelSettings: DataLabelSettings(
+              isVisible: true,
+              // Templating the data label
+              builder: (dynamic data, dynamic point, dynamic series,
+                  int pointIndex, int seriesIndex) {
+                final _ChartData chartData = data;
+                return chartData.isMarked
+                    ? Icon(Icons.flag)
+                    : SizedBox.shrink();
+              })),
     ];
   }
 
@@ -206,12 +213,12 @@ class _FrontPanelState extends State<FrontPanel> {
   List<_ChartData> chartData1 = <_ChartData>[
     _ChartData(DateTime(2019, 10, 1, 1, 1, 1), 40),
   ];
-
 }
 
-
 class _ChartData {
-  _ChartData(this.time, this.sales);
+  _ChartData(this.time, this.sales, {this.isMarked = false});
+
   final DateTime time;
   final double sales;
+  final bool isMarked;
 }
