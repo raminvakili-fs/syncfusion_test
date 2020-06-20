@@ -67,80 +67,44 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
     ];
   }
 
-  List<TechnicalIndicators<ChartSampleData, DateTime>> _buildIndicators() {
-    return <TechnicalIndicators<ChartSampleData, DateTime>>[
-      SmaIndicator<ChartSampleData, DateTime>(
-        seriesName: 'SMA',
-        period: 2,
-        valueField: 'close',
-        closeValueMapper: (ChartSampleData data, index) => data.close,
-        highValueMapper: (ChartSampleData data, index) => data.high,
-        lowValueMapper: (ChartSampleData data, index) => data.low,
-        openValueMapper: (ChartSampleData data, index) => data.open,
-        xValueMapper: (ChartSampleData data, index) => data.openTime,
-        animationDuration: 300,
-      ),
-      AtrIndicator<ChartSampleData, DateTime>(
-        period: 3,
-        seriesName: 'ATR',
-        closeValueMapper: (ChartSampleData data, index) => data.close,
-        highValueMapper: (ChartSampleData data, index) => data.high,
-        lowValueMapper: (ChartSampleData data, index) => data.low,
-        xValueMapper: (ChartSampleData data, index) => data.openTime,
-        animationDuration: 300,
-      ),
-//      MacdIndicator<ChartSampleData, DateTime>(
-//          period: 14,
-//          longPeriod: 5,
-//          shortPeriod: 2,
-//          signalLineWidth: 2,
-//          macdType: MacdType.both,
-//          seriesName: 'AAPL',
-//          yAxisName: 'agybrd'),
+  List<TechnicalIndicators<ChartSampleData, dynamic>> _buildIndicators() {
+    return <TechnicalIndicators<ChartSampleData, dynamic>>[
+      SmaIndicator<ChartSampleData, dynamic>(seriesName: 'AAPL', period: 10),
+      TmaIndicator<ChartSampleData, dynamic>(seriesName: 'AAPL', period: 10)
     ];
   }
 
   NumericAxis _buildPrimaryYAxis() {
     return NumericAxis(
-//          minimum: 2000,
-//          maximum: 0,
-        interval: 1,
+        minimum: 220,
+        maximum: 240,
+        interval: 5,
         labelFormat: '\${value}',
         axisLine: AxisLine(width: 0));
   }
 
   DateTimeAxis _buildPrimaryXAxis() {
     return DateTimeAxis(
+        majorGridLines: MajorGridLines(width: 0),
         dateFormat: DateFormat.ms(),
-        interval: 40,
-        intervalType: DateTimeIntervalType.minutes,
+        interval: 3,
+        intervalType: DateTimeIntervalType.months,
         minimum:
-            widget.chartData.first.epoch.subtract(const Duration(minutes: 2)),
-        maximum: widget.chartData.last.epoch.add(const Duration(minutes: 2)),
-        majorGridLines: MajorGridLines(width: 1));
+            widget.chartData.first.epoch.subtract(const Duration(minutes: 4)),
+        maximum: widget.chartData.last.epoch.add(const Duration(minutes: 4)));
   }
 
   SfCartesianChart _buildMACDChart() {
     return SfCartesianChart(
       indicators: <TechnicalIndicators<ChartSampleData, DateTime>>[
         MacdIndicator<ChartSampleData, DateTime>(
-            longPeriod: 2, shortPeriod: 1, seriesName: 'HiloOpenClose')
+            isVisible: true,
+            longPeriod: 14,
+            shortPeriod: 5,
+            seriesName: 'HiloOpenClose')
       ],
-      primaryXAxis: DateTimeAxis(
-          dateFormat: DateFormat.ms(),
-          interval: 10,
-          intervalType: DateTimeIntervalType.auto,
-          minimum:
-              widget.chartData.first.epoch.subtract(const Duration(minutes: 2)),
-          maximum:
-              widget.chartData.first.epoch.add(const Duration(minutes: 20)),
-          majorGridLines: MajorGridLines(width: 1)),
-      primaryYAxis: NumericAxis(
-//          minimum: 2000,
-//          maximum: 0,
-          interval: 1,
-          labelFormat: '\${value}',
-          axisLine: AxisLine(width: 0)),
+      primaryXAxis: _buildPrimaryXAxis(),
+      primaryYAxis: _buildPrimaryYAxis(),
       series: getCandleSeries(isVisible: false),
       zoomPanBehavior:
           ZoomPanBehavior(enablePinching: true, enablePanning: true),
