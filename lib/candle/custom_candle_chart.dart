@@ -30,6 +30,7 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
         Text('Tooltip: click oh point, CrossHair: Long press'),
         Expanded(flex: 3, child: _buildMainChart()),
         Expanded(flex: 1, child: _buildMACDChart()),
+        Expanded(flex: 1, child: _buildRSIChart()),
       ],
     );
   }
@@ -70,7 +71,7 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
   List<TechnicalIndicators<ChartSampleData, dynamic>> _buildIndicators() {
     return <TechnicalIndicators<ChartSampleData, dynamic>>[
       SmaIndicator<ChartSampleData, dynamic>(seriesName: 'AAPL', period: 10),
-      TmaIndicator<ChartSampleData, dynamic>(seriesName: 'AAPL', period: 10)
+      TmaIndicator<ChartSampleData, dynamic>(seriesName: 'AAPL', period: 10),
     ];
   }
 
@@ -161,4 +162,31 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
               )
             : SizedBox.shrink();
       });
+
+  _buildRSIChart() => SfCartesianChart(
+      plotAreaBorderWidth: 0,
+      primaryXAxis: _buildPrimaryXAxis(),
+      axes: <ChartAxis>[
+        NumericAxis(
+            majorGridLines: MajorGridLines(width: 0),
+            opposedPosition: true,
+            name: 'yaxes',
+            minimum: 10,
+            maximum: 110,
+            interval: 20,
+            axisLine: AxisLine(width: 0))
+      ],
+      tooltipBehavior: TooltipBehavior(enable: true),
+      indicators: <TechnicalIndicators<ChartSampleData, dynamic>>[
+        RsiIndicator<ChartSampleData, dynamic>(
+            seriesName: 'AAPL',
+            yAxisName: 'yaxes',
+            overbought:
+                80,
+            oversold:20,
+            showZones: true,
+            period:
+            14),
+      ],
+      series: getCandleSeries(isVisible: false));
 }
