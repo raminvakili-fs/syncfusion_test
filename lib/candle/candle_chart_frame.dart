@@ -59,7 +59,7 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
       TicksHistoryRequest(
         ticksHistory: 'R_50',
         adjustStartTime: 1,
-        count: 20,
+        count: 200,
         end: 'latest',
         start: 1,
         style: 'candles',
