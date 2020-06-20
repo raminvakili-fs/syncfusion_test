@@ -28,7 +28,7 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
     return Column(
       children: <Widget>[
         Text('Tooltip: click oh point, CrossHair: Long press'),
-        Expanded(flex: 3, child: _buildMainChart()),
+        Expanded(flex: 2, child: _buildMainChart()),
         Expanded(flex: 1, child: _buildMACDChart()),
         Expanded(flex: 1, child: _buildRSIChart()),
       ],
@@ -38,8 +38,8 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
   SfCartesianChart _buildMainChart() {
     return SfCartesianChart(
       plotAreaBorderWidth: 0,
-      title: ChartTitle(text: 'AAPL - 2016'),
-      indicators: _buildIndicators(),
+      title: ChartTitle(text: 'R_50', textStyle: ChartTextStyle(fontSize: 10)),
+      indicators: _buildMAIndicators(),
       primaryXAxis: _buildPrimaryXAxis(),
       primaryYAxis: _buildPrimaryYAxis(),
       series: widget.type == 'candle' ? getCandleSeries() : getOHLCSeries(),
@@ -68,10 +68,12 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
     ];
   }
 
-  List<TechnicalIndicators<ChartSampleData, dynamic>> _buildIndicators() {
+  List<TechnicalIndicators<ChartSampleData, dynamic>> _buildMAIndicators() {
     return <TechnicalIndicators<ChartSampleData, dynamic>>[
-      SmaIndicator<ChartSampleData, dynamic>(seriesName: 'AAPL', period: 10),
-      TmaIndicator<ChartSampleData, dynamic>(seriesName: 'AAPL', period: 10),
+      SmaIndicator<ChartSampleData, dynamic>(
+          seriesName: 'AAPL', period: 10, signalLineColor: Colors.orangeAccent),
+      TmaIndicator<ChartSampleData, dynamic>(
+          seriesName: 'AAPL', period: 10, signalLineColor: Colors.indigo),
     ];
   }
 
@@ -95,22 +97,22 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
         maximum: widget.chartData.last.epoch.add(const Duration(minutes: 4)));
   }
 
-  SfCartesianChart _buildMACDChart() {
-    return SfCartesianChart(
-      indicators: <TechnicalIndicators<ChartSampleData, DateTime>>[
-        MacdIndicator<ChartSampleData, DateTime>(
-            isVisible: true,
-            longPeriod: 14,
-            shortPeriod: 5,
-            seriesName: 'HiloOpenClose')
-      ],
+  SfCartesianChart _buildMACDChart() => SfCartesianChart(
+      plotAreaBorderWidth: 0,
       primaryXAxis: _buildPrimaryXAxis(),
-      primaryYAxis: _buildPrimaryYAxis(),
-      series: getCandleSeries(isVisible: false),
-      zoomPanBehavior:
-          ZoomPanBehavior(enablePinching: true, enablePanning: true),
-    );
-  }
+      axes: _buildIndicatorsAxes(),
+      tooltipBehavior: TooltipBehavior(enable: true),
+      indicators: <TechnicalIndicators<ChartSampleData, dynamic>>[
+        MacdIndicator<ChartSampleData, dynamic>(
+            period: 14,
+            longPeriod: 5,
+            shortPeriod: 2,
+            signalLineWidth: 2,
+            macdType: MacdType.both,
+            seriesName: 'AAPL',
+            yAxisName: 'agybrd')
+      ],
+      series: getCandleSeries(isVisible: false));
 
   List<CandleSeries<ChartSampleData, DateTime>> getCandleSeries({
     bool isVisible = true,
@@ -166,27 +168,29 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
   _buildRSIChart() => SfCartesianChart(
       plotAreaBorderWidth: 0,
       primaryXAxis: _buildPrimaryXAxis(),
-      axes: <ChartAxis>[
-        NumericAxis(
-            majorGridLines: MajorGridLines(width: 0),
-            opposedPosition: true,
-            name: 'yaxes',
-            minimum: 10,
-            maximum: 110,
-            interval: 20,
-            axisLine: AxisLine(width: 0))
-      ],
+      axes: _buildIndicatorsAxes(),
       tooltipBehavior: TooltipBehavior(enable: true),
       indicators: <TechnicalIndicators<ChartSampleData, dynamic>>[
         RsiIndicator<ChartSampleData, dynamic>(
             seriesName: 'AAPL',
             yAxisName: 'yaxes',
-            overbought:
-                80,
-            oversold:20,
+            overbought: 80,
+            oversold: 20,
             showZones: true,
-            period:
-            14),
+            period: 14),
       ],
       series: getCandleSeries(isVisible: false));
+
+  List<ChartAxis> _buildIndicatorsAxes() {
+    return <ChartAxis>[
+      NumericAxis(
+          majorGridLines: MajorGridLines(width: 0),
+          opposedPosition: true,
+          name: 'yaxes',
+          minimum: 10,
+          maximum: 110,
+          interval: 20,
+          axisLine: AxisLine(width: 0))
+    ];
+  }
 }
