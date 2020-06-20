@@ -112,11 +112,11 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
   DateTimeAxis _buildPrimaryXAxis() {
     return DateTimeAxis(
         dateFormat: DateFormat.ms(),
-        interval: 10,
-        intervalType: DateTimeIntervalType.seconds,
+        interval: 40,
+        intervalType: DateTimeIntervalType.minutes,
         minimum:
             widget.chartData.first.epoch.subtract(const Duration(minutes: 2)),
-        maximum: widget.chartData.first.epoch.add(const Duration(minutes: 30)),
+        maximum: widget.chartData.last.epoch.add(const Duration(minutes: 2)),
         majorGridLines: MajorGridLines(width: 1));
   }
 

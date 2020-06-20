@@ -101,12 +101,6 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
             open: newTickOpen,
             close: newTickClose,
           ));
-
-          print('*** *** ***');
-          for (final data in _chartData) {
-            print(data);
-          }
-          print('*** *** ***');
         });
       }
     });
