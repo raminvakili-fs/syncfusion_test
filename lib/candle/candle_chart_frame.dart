@@ -39,11 +39,13 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
           ? (last.close + _random.nextInt(10) + _random.nextDouble())
           : (last.close - _random.nextInt(10) + _random.nextDouble());
       ChartSampleData newLast = ChartSampleData(
-          epoch: last.epoch,
-          open: last.open,
-          high: newClose > last.high ? newClose : last.high,
-          low: newClose < last.low ? newClose : last.low,
-          close: newClose);
+        epoch: last.epoch,
+        open: last.open,
+        high: newClose > last.high ? newClose : last.high,
+        low: newClose < last.low ? newClose : last.low,
+        close: newClose,
+        isMarked: _random.nextBool(),
+      );
       _chartData.add(newLast);
       if (!zooming) {
         setState(() {});
@@ -61,6 +63,7 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
         end: 'latest',
         start: 1,
         style: 'candles',
+        granularity: 60,
       ),
     );
 
@@ -72,6 +75,7 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
           high: c.high,
           close: c.close,
           epoch: c.epoch,
+          isMarked: _random.nextBool(),
         ));
       }
     });
@@ -80,7 +84,6 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
       final OHLC ohlc = tick;
       _lastTick = ohlc;
       if (ohlc != null) {
-
         final double newTickOpen = double.tryParse(ohlc.open);
         final double newTickLow = double.tryParse(ohlc.low);
         final double newTickHigh = double.tryParse(ohlc.high);
@@ -92,12 +95,18 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
 
         setState(() {
           _chartData.add(ChartSampleData(
-            epoch: ohlc.epoch,
+            epoch: ohlc.openTime,
             low: newTickLow,
             high: newTickHigh,
             open: newTickOpen,
             close: newTickClose,
           ));
+
+          print('*** *** ***');
+          for (final data in _chartData) {
+            print(data);
+          }
+          print('*** *** ***');
         });
       }
     });
@@ -119,9 +128,8 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
                   chartData: _chartData,
                   onZoomStart: () => zooming = true,
                   onZoomEnd: () => zooming = false,
-            type: type,
+                  type: type,
                 ),
-
           Padding(
             padding: const EdgeInsets.only(bottom: 24),
             child: Align(

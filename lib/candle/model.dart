@@ -13,6 +13,7 @@ class ChartSampleData {
     this.text,
     this.open,
     this.close,
+    this.isMarked = false,
   });
 
   final dynamic epoch;
@@ -26,4 +27,8 @@ class ChartSampleData {
   final String text;
   final num open;
   final num close;
+  final bool isMarked;
+
+  @override
+  String toString() => 'epoch: $epoch, close: $close';
 }
