@@ -11,12 +11,17 @@ class CustomCandleChart extends StatefulWidget {
     this.onZoomStart,
     this.onZoomEnd,
     this.type,
+    this.minPrice,
+    this.maxPrice,
   }) : super(key: key);
 
   final List<ChartSampleData> chartData;
   final String type;
   final VoidCallback onZoomStart;
   final VoidCallback onZoomEnd;
+
+  final double minPrice;
+  final double maxPrice;
 
   @override
   _CustomCandleChartState createState() => _CustomCandleChartState();
@@ -79,8 +84,8 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
 
   NumericAxis _buildPrimaryYAxis() {
     return NumericAxis(
-        minimum: 220,
-        maximum: 240,
+        minimum: widget.minPrice - 5,
+        maximum: widget.maxPrice + 5,
         interval: 5,
         labelFormat: '\${value}',
         axisLine: AxisLine(width: 0));
@@ -109,6 +114,7 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
             shortPeriod: 2,
             signalLineWidth: 2,
             macdType: MacdType.both,
+            histogramNegativeColor: Colors.blueGrey,
             seriesName: 'AAPL',
             yAxisName: 'agybrd')
       ],
@@ -158,10 +164,7 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
           int seriesIndex) {
         final ChartSampleData chartData = data;
         return chartData.isMarked
-            ? Icon(
-                Icons.flag,
-                size: 300,
-              )
+            ? Icon(Icons.flag, size: 300)
             : SizedBox.shrink();
       });
 

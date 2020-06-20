@@ -21,6 +21,8 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
   final List<ChartSampleData> _chartData = <ChartSampleData>[];
 
   final Random _random = Random();
+  double _maxPrice = 200;
+  double _minPrice = 200;
 
   @override
   void initState() {
@@ -69,6 +71,7 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
 
     setState(() {
       for (final CandleModel c in subscription.tickHistory.candles) {
+        _updatePriceRanges(c.low, c.high);
         _chartData.add(ChartSampleData(
           open: c.open,
           low: c.low,
@@ -89,6 +92,8 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
         final double newTickHigh = double.tryParse(ohlc.high);
         final double newTickClose = double.tryParse(ohlc.close);
 
+        _updatePriceRanges(newTickLow, newTickHigh);
+
         if (_chartData.isNotEmpty && newTickOpen == _chartData.last.open) {
           _chartData.removeLast();
         }
@@ -104,6 +109,11 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
         });
       }
     });
+  }
+
+  void _updatePriceRanges(double low, double high) {
+    _maxPrice = max(_maxPrice, high);
+    _minPrice = max(_maxPrice, low);
   }
 
   bool zooming = false;
@@ -123,6 +133,8 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
                   onZoomStart: () => zooming = true,
                   onZoomEnd: () => zooming = false,
                   type: type,
+                  minPrice: _minPrice,
+                  maxPrice: _maxPrice,
                 ),
           Padding(
             padding: const EdgeInsets.only(bottom: 24),
