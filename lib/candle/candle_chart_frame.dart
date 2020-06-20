@@ -19,8 +19,12 @@ class CandleChartFrame extends StatefulWidget {
 
 class _CandleChartFrameState extends State<CandleChartFrame> {
   final List<ChartSampleData> _chartData = <ChartSampleData>[];
+  final List<ChartSampleData> _markedData = <ChartSampleData>[];
 
   final Random _random = Random();
+
+  StreamSubscription _streamSubscription;
+
   double _maxPrice = 200;
   double _minPrice = 200;
 
@@ -32,6 +36,7 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
 
   TickBase _lastTick;
   String type = 'candle';
+  int _numOfTicks = 0;
 
   void _getMockedLiveData() {
     Timer.periodic(const Duration(seconds: 2), (Timer timer) {
@@ -61,32 +66,36 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
       TicksHistoryRequest(
         ticksHistory: 'R_50',
         adjustStartTime: 1,
-        count: 100,
+        count: 200,
         end: 'latest',
         start: 1,
         style: 'candles',
         granularity: 60,
       ),
     );
-
+    _numOfTicks = 0;
+    _numOfTicks += subscription.tickHistory.candles.length;
     setState(() {
       for (final CandleModel c in subscription.tickHistory.candles) {
         _updatePriceRanges(c.low, c.high);
-        _chartData.add(ChartSampleData(
+        final ChartSampleData newData = ChartSampleData(
           open: c.open,
           low: c.low,
           high: c.high,
           close: c.close,
           epoch: c.epoch,
           isMarked: _random.nextBool(),
-        ));
+        );
+        _addAsMarkerIfAnyChance(newData);
+        _chartData.add(newData);
       }
     });
 
-    subscription.tickStream.listen((TickBase tick) {
+    _streamSubscription = subscription.tickStream.listen((TickBase tick) {
       final OHLC ohlc = tick;
       _lastTick = ohlc;
       if (ohlc != null) {
+        _numOfTicks++;
         final double newTickOpen = double.tryParse(ohlc.open);
         final double newTickLow = double.tryParse(ohlc.low);
         final double newTickHigh = double.tryParse(ohlc.high);
@@ -94,21 +103,31 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
 
         _updatePriceRanges(newTickLow, newTickHigh);
 
-        if (_chartData.isNotEmpty && newTickOpen == _chartData.last.open) {
-          _chartData.removeLast();
-        }
+        final ChartSampleData newData = ChartSampleData(
+          epoch: ohlc.openTime,
+          low: newTickLow,
+          high: newTickHigh,
+          open: newTickOpen,
+          close: newTickClose,
+        );
 
-        setState(() {
-          _chartData.add(ChartSampleData(
-            epoch: ohlc.openTime,
-            low: newTickLow,
-            high: newTickHigh,
-            open: newTickOpen,
-            close: newTickClose,
-          ));
-        });
+        if (_chartData.isNotEmpty && newTickOpen == _chartData.last.open) {
+          _chartData.last.update(newData);
+        } else {
+          _addAsMarkerIfAnyChance(newData);
+          _chartData.add(newData);
+        }
+        if (!zooming) {
+          setState(() {});
+        }
       }
     });
+  }
+
+  void _addAsMarkerIfAnyChance(ChartSampleData newData) {
+    if (_random.nextInt(10) > 8) {
+      _markedData.add(newData);
+    }
   }
 
   void _updatePriceRanges(double low, double high) {
@@ -120,8 +139,9 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
 
   @override
   Widget build(BuildContext context) {
+    print('$_numOfTicks ticks');
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(title: Text('Number of ticks: $_numOfTicks'),),
       body: Stack(
         children: <Widget>[
           _chartData.isEmpty
@@ -135,6 +155,7 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
                   type: type,
                   minPrice: _minPrice,
                   maxPrice: _maxPrice,
+                  markedData: _markedData,
                 ),
           Padding(
             padding: const EdgeInsets.only(bottom: 24),
@@ -179,6 +200,7 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
   @override
   void dispose() async {
     await _lastTick?.unsubscribe();
+    await _streamSubscription?.cancel();
     super.dispose();
   }
 }

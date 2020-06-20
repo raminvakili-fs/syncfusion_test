@@ -16,18 +16,28 @@ class ChartSampleData {
     this.isMarked = false,
   });
 
-  final dynamic epoch;
-  final num low;
-  final dynamic openTime;
-  final num high;
-  final num yValue2;
-  final num yValue3;
-  final Color pointColor;
-  final num size;
-  final String text;
-  final num open;
-  final num close;
-  final bool isMarked;
+  DateTime epoch;
+  num low;
+  DateTime openTime;
+  num high;
+  num yValue2;
+  num yValue3;
+  Color pointColor;
+  num size;
+  String text;
+  num open;
+  num close;
+  bool isMarked;
+
+  void update(ChartSampleData newData) {
+    epoch = newData.epoch;
+    openTime = newData.openTime;
+    open = newData.open;
+    close = newData.close;
+    high = newData.high;
+    low = newData.low;
+    isMarked = newData.isMarked;
+  }
 
   @override
   String toString() => 'epoch: $epoch, close: $close';
