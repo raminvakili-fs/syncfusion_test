@@ -31,6 +31,14 @@ class CustomCandleChart extends StatefulWidget {
 }
 
 class _CustomCandleChartState extends State<CustomCandleChart> {
+
+  ZoomPanArgs _zoomPanArgs = ZoomPanArgs();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -56,8 +64,18 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
         ],
         trackballBehavior: TrackballBehavior(
             enable: true, activationMode: ActivationMode.longPress),
-        onZoomStart: (_) => widget.onZoomStart(),
-        onZoomEnd: (_) => widget.onZoomEnd(),
+        onZoomStart: (args) {
+          widget.onZoomStart();
+          setState(() {
+            _zoomPanArgs = args;
+          });
+        },
+        onZoomEnd: (args) {
+          widget.onZoomEnd();
+          setState(() {
+            _zoomPanArgs = args;
+          });
+        },
         zoomPanBehavior:
             ZoomPanBehavior(enablePinching: true, enablePanning: true),
         tooltipBehavior: TooltipBehavior(enable: true),
@@ -103,6 +121,8 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
   DateTimeAxis _buildPrimaryXAxis() => DateTimeAxis(
       majorGridLines: MajorGridLines(width: 0),
       dateFormat: DateFormat.ms(),
+      zoomFactor: _zoomPanArgs.currentZoomFactor,
+      zoomPosition: _zoomPanArgs.currentZoomPosition,
       interval: 3,
       intervalType: DateTimeIntervalType.months,
       minimum:
@@ -113,6 +133,8 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
           plotAreaBorderWidth: 0,
           primaryXAxis: _buildPrimaryXAxis(),
           axes: _buildIndicatorsAxes(),
+          zoomPanBehavior:
+              ZoomPanBehavior(enablePanning: true, enablePinching: true),
           tooltipBehavior: TooltipBehavior(enable: true),
           indicators: <TechnicalIndicators<ChartSampleData, dynamic>>[
             MacdIndicator<ChartSampleData, dynamic>(
