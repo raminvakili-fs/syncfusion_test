@@ -10,7 +10,7 @@ import 'package:flutter_deriv_api/api/common/tick/tick_history_subscription.dart
 import 'package:flutter_deriv_api/basic_api/generated/ticks_history_send.dart';
 
 import 'custom_candle_chart.dart';
-import 'model.dart';
+import '../model/model.dart';
 
 class CandleChartFrame extends StatefulWidget {
   @override
@@ -37,28 +37,6 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
   TickBase _lastTick;
   String type = 'candle';
   int _numOfTicks = 0;
-
-  void _getMockedLiveData() {
-    Timer.periodic(const Duration(seconds: 2), (Timer timer) {
-      ChartSampleData last = _chartData.removeLast();
-
-      double newClose = _random.nextBool()
-          ? (last.close + _random.nextInt(10) + _random.nextDouble())
-          : (last.close - _random.nextInt(10) + _random.nextDouble());
-      ChartSampleData newLast = ChartSampleData(
-        epoch: last.epoch,
-        open: last.open,
-        high: newClose > last.high ? newClose : last.high,
-        low: newClose < last.low ? newClose : last.low,
-        close: newClose,
-        isMarked: _random.nextBool(),
-      );
-      _chartData.add(newLast);
-      if (!zooming) {
-        setState(() {});
-      }
-    });
-  }
 
   void _getTickStream() async {
     final TickHistorySubscription subscription =
@@ -96,10 +74,10 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
       _lastTick = ohlc;
       if (ohlc != null) {
         _numOfTicks++;
-        final double newTickOpen = double.tryParse(ohlc.open);
-        final double newTickLow = double.tryParse(ohlc.low);
-        final double newTickHigh = double.tryParse(ohlc.high);
-        final double newTickClose = double.tryParse(ohlc.close);
+        final double newTickOpen = ohlc.open;
+        final double newTickLow = ohlc.low;
+        final double newTickHigh = ohlc.high;
+        final double newTickClose = ohlc.close;
 
         _updatePriceRanges(newTickLow, newTickHigh);
 

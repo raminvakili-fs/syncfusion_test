@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-import 'model.dart';
+import '../model/model.dart';
 
 class CustomCandleChart extends StatefulWidget {
   CustomCandleChart({
@@ -31,7 +31,6 @@ class CustomCandleChart extends StatefulWidget {
 }
 
 class _CustomCandleChartState extends State<CustomCandleChart> {
-
   ZoomPanArgs _zoomPanArgs = ZoomPanArgs();
 
   @override
@@ -52,6 +51,9 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
   }
 
   Widget _buildMainChart() => SfCartesianChart(
+        annotations: <CartesianChartAnnotation>[
+          _buildATestFlagAnnotation()
+        ],
         plotAreaBorderWidth: 0,
         title:
             ChartTitle(text: 'R_50', textStyle: ChartTextStyle(fontSize: 10)),
@@ -82,6 +84,16 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
         crosshairBehavior: CrosshairBehavior(
             enable: true, activationMode: ActivationMode.longPress),
       );
+
+  CartesianChartAnnotation _buildATestFlagAnnotation() {
+    return CartesianChartAnnotation(
+          widget: Icon(Icons.flag, color: Colors.white,),
+          coordinateUnit: CoordinateUnit.point,
+          region: AnnotationRegion.chart,
+          y: widget.chartData.first.high,
+          x: widget.chartData.first.epoch,
+        );
+  }
 
   ChartSeries<ChartSampleData, dynamic> _buildMarkerSeries() =>
       ScatterSeries<ChartSampleData, dynamic>(

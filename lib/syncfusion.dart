@@ -4,7 +4,7 @@ import 'package:flutter_deriv_api/services/connection/api_manager/connection_inf
 import 'package:flutter_deriv_api/services/dependency_injector/injector.dart';
 import 'package:flutter_deriv_api/services/dependency_injector/module_container.dart';
 import 'package:syncfusion_features/candle/candle_chart_frame.dart';
-import 'package:syncfusion_features/line/line_live_update.dart';
+import 'package:syncfusion_features/line/line_chart.dart';
 
 
 class SyncFusion extends StatefulWidget {
@@ -37,7 +37,7 @@ class _SyncFusionState extends State<SyncFusion> {
           ListTile(
             title: Text('Line Chart'),
             onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) => LineLiveUpdate()
+                builder: (BuildContext context) => LineChart()
             )),
           ),
           ListTile(

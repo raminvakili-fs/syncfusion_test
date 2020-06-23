@@ -1,140 +1,192 @@
+import 'dart:async';
+import 'dart:math';
+import 'package:flutter_deriv_api/api/common/models/candle_model.dart';
+import 'package:flutter_deriv_api/api/common/tick/ohlc.dart';
+import 'package:flutter_deriv_api/api/common/tick/tick.dart';
+import 'package:flutter_deriv_api/api/common/tick/tick_base.dart';
+import 'package:flutter_deriv_api/api/common/tick/tick_history.dart';
+import 'package:flutter_deriv_api/api/common/tick/tick_history_subscription.dart';
+import 'package:flutter_deriv_api/basic_api/generated/api.dart';
+import 'package:intl/intl.dart';
+import 'package:syncfusion_features/model/model.dart';
+import 'package:syncfusion_features/line/custom_line_series.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:flutter/material.dart';
 
-class LineDefault extends StatefulWidget {
-  const LineDefault({Key key}) : super(key: key);
+class LineChart extends StatefulWidget {
+  const LineChart({Key key}) : super(key: key);
 
   @override
-  _LineDefaultState createState() => _LineDefaultState();
+  _LineChartState createState() => _LineChartState();
 }
 
-class _LineDefaultState extends State<LineDefault> {
-  _LineDefaultState();
-  bool panelOpen;
-  final ValueNotifier<bool> frontPanelVisible = ValueNotifier<bool>(true);
+class _LineChartState extends State<LineChart> {
+  _LineChartState();
+
+  final List<ChartSampleData> _chartData = <ChartSampleData>[];
+  final List<ChartSampleData> _markedData = <ChartSampleData>[];
+
+  final Random _random = Random();
+
+  StreamSubscription _streamSubscription;
+
+  double _maxPrice = 200;
+  double _minPrice = 200;
+
+  TickBase _lastTick;
+  String type = 'candle';
+  int _numOfTicks = 0;
+
+  void _addAsMarkerIfAnyChance(ChartSampleData newData) {
+    if (_random.nextInt(10) > 8) {
+      _markedData.add(newData);
+    }
+  }
+
+  void _updatePriceRanges(double low, double high) {
+    _maxPrice = max(_maxPrice, high);
+    _minPrice = max(_maxPrice, low);
+  }
+
+  bool zooming = false;
 
   @override
   void initState() {
-    panelOpen = frontPanelVisible.value;
-    frontPanelVisible.addListener(_subscribeToValueNotifier);
     super.initState();
+    _getTickStream();
   }
 
-  void _subscribeToValueNotifier() => panelOpen = frontPanelVisible.value;
+  void _getTickStream() async {
+    final TickHistorySubscription subscription =
+        await TickHistory.fetchTicksAndSubscribe(
+      TicksHistoryRequest(
+        ticksHistory: 'R_50',
+        adjustStartTime: 1,
+        count: 20,
+        end: 'latest',
+        start: 1,
+        style: 'candles',
+        granularity: 60,
+      ),
+    );
+    _numOfTicks = 0;
+    _numOfTicks += subscription.tickHistory.candles.length;
+    setState(() {
+      for (final CandleModel c in subscription.tickHistory.candles) {
+        _updatePriceRanges(c.low, c.high);
+        final ChartSampleData newData = ChartSampleData(
+          open: c.open,
+          low: c.low,
+          high: c.high,
+          close: c.close,
+          epoch: c.epoch,
+          isMarked: _random.nextBool(),
+        );
+        _addAsMarkerIfAnyChance(newData);
+        _chartData.add(newData);
+      }
+    });
+
+    _streamSubscription = subscription.tickStream.listen((TickBase tick) {
+      final OHLC ohlc = tick;
+      _lastTick = ohlc;
+      if (ohlc != null) {
+        _numOfTicks++;
+        final double newTickOpen = ohlc.open;
+        final double newTickLow = ohlc.low;
+        final double newTickHigh = ohlc.high;
+        final double newTickClose = ohlc.close;
+
+        _updatePriceRanges(newTickLow, newTickHigh);
+
+        final ChartSampleData newData = ChartSampleData(
+          epoch: ohlc.openTime,
+          low: newTickLow,
+          high: newTickHigh,
+          open: newTickOpen,
+          close: newTickClose,
+        );
+
+        if (_chartData.isNotEmpty && newTickOpen == _chartData.last.open) {
+          _chartData.last.update(newData);
+        } else {
+          _addAsMarkerIfAnyChance(newData);
+          _chartData.add(newData);
+        }
+        if (!zooming) {
+          setState(() {});
+        }
+      }
+    });
+  }
 
   @override
-  void dispose() {
+  void dispose() async {
+    await _lastTick.unsubscribe();
+    await _streamSubscription.cancel();
+
     super.dispose();
   }
 
   @override
-  void didUpdateWidget(LineDefault oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    frontPanelVisible.removeListener(_subscribeToValueNotifier);
-    frontPanelVisible.addListener(_subscribeToValueNotifier);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FrontPanel();
-  }
-}
-
-class FrontPanel extends StatefulWidget {
-
-  FrontPanel();
-
-  @override
-  _FrontPanelState createState() => _FrontPanelState();
-}
-
-class _FrontPanelState extends State<FrontPanel> {
-  _FrontPanelState();
-  bool enableTooltip = true;
-  bool enableMarker = true;
-  bool enableDatalabel = false;
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(title: Text('Syncfusion Line Chart with crosshair'),),
-      body: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Container(child: getDefaultLineChart(false)),
-      ),
+        appBar: AppBar(
+          title: Text('Line Chart!'),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            children: <Widget>[
+              Text('Features: Scroll, Pan&Zoom, tooltip, Crosshair'),
+              SizedBox(height: 10.0),
+              Text('Ticks: $_numOfTicks'),
+              Expanded(flex: 1, child: Center(child: _getLineChart())),
+            ],
+          ),
+        ));
+  }
+
+  SfCartesianChart _getLineChart() {
+    return SfCartesianChart(
+      plotAreaBorderWidth: 0,
+      primaryXAxis: DateTimeAxis(
+          dateFormat: DateFormat.Hms(),
+          intervalType: DateTimeIntervalType.seconds,
+          majorGridLines: MajorGridLines(width: 0)),
+      primaryYAxis: NumericAxis(
+          axisLine: AxisLine(width: 0),
+          majorTickLines: MajorTickLines(size: 0)),
+      series: getLineSeries(),
+      zoomPanBehavior: ZoomPanBehavior(
+          enablePinching: true, zoomMode: ZoomMode.x, enablePanning: true),
+      crosshairBehavior: CrosshairBehavior(
+          enable: true,
+          lineWidth: 1,
+          activationMode: ActivationMode.singleTap,
+          shouldAlwaysShow: true,
+          lineType: CrosshairLineType.both),
+      tooltipBehavior: TooltipBehavior(
+          enable: true,
+          header: '',
+          canShowMarker: true,
+          format: 'point.x / point.y'),
     );
   }
-}
 
-
-SfCartesianChart getDefaultLineChart(bool isTileView) {
-  return SfCartesianChart(
-    plotAreaBorderWidth: 0,
-    title: ChartTitle(text: 'Click on the Chart to show crosshair'),
-    legend: Legend(
-        isVisible: isTileView ? false : true,
-        overflowMode: LegendItemOverflowMode.wrap),
-    primaryXAxis: NumericAxis(
-        edgeLabelPlacement: EdgeLabelPlacement.shift,
-        interval: 2,
-        majorGridLines: MajorGridLines(width: 0)),
-    primaryYAxis: NumericAxis(
-        labelFormat: '{value}%',
-        axisLine: AxisLine(width: 0),
-        majorTickLines: MajorTickLines(color: Colors.transparent)),
-    series: getLineSeries(isTileView),
-    tooltipBehavior: TooltipBehavior(enable: true),
-    zoomPanBehavior: ZoomPanBehavior(
-        enablePinching: true,
-        zoomMode: ZoomMode.x,
-        enablePanning: true),
-    crosshairBehavior: CrosshairBehavior(
-        enable: true,
-        lineWidth: 1,
-        activationMode: ActivationMode.singleTap,
-        shouldAlwaysShow: isTileView ? true : true,
-        lineType: isTileView ? CrosshairLineType.both : CrosshairLineType.both),
-  );
-}
-
-List<LineSeries<_ChartData, num>> getLineSeries(bool isTileView) {
-  final List<_ChartData> chartData = <_ChartData>[
-    _ChartData(2005, 21, 28),
-    _ChartData(2006, 24, 44),
-    _ChartData(2007, 36, 48),
-    _ChartData(2008, 38, 50),
-    _ChartData(2009, 54, 66),
-    _ChartData(2010, 57, 78),
-    _ChartData(2011, 70, 84),
-    _ChartData(2012, 70, 70),
-    _ChartData(2013, 70, 92)
-  ];
-  return <LineSeries<_ChartData, num>>[
-    LineSeries<_ChartData, num>(
-//        animationDuration: 2500,
-        enableTooltip: true,
-        dataSource: chartData,
-        xValueMapper: (_ChartData sales, _) => sales.x,
-        yValueMapper: (_ChartData sales, _) => sales.y,
-        width: 2,
-        name: 'Germany',
-        markerSettings: MarkerSettings(isVisible: true)),
-    LineSeries<_ChartData, num>(
-//        animationDuration: 2500,
-        enableTooltip: true,
-        dataSource: chartData,
-        width: 2,
-        name: 'England',
-        xValueMapper: (_ChartData sales, _) => sales.x,
-        yValueMapper: (_ChartData sales, _) => sales.y2,
-        markerSettings: MarkerSettings(isVisible: true))
-  ];
-}
-
-class _ChartData {
-  _ChartData(this.x, this.y, this.y2);
-  final double x;
-  final double y;
-  final double y2;
+  List<ChartSeries<ChartSampleData, DateTime>> getLineSeries() {
+    return <ChartSeries<ChartSampleData, DateTime>>[
+      CustomLineSeries<ChartSampleData, DateTime>(
+        animationDuration: 300,
+        color: Colors.white,
+        dataSource: _chartData,
+//        gradient: LinearGradient(
+//          colors: [const Color(0x008CA4A4), const Color(0xFF8CA4A4)],
+//          stops: [0, 1],
+//        ),
+        xValueMapper: (ChartSampleData sales, _) => sales.epoch,
+        yValueMapper: (ChartSampleData sales, _) => (sales.high + sales.low + sales.open + sales.close)/ 4,
+      ),
+    ];
+  }
 }
