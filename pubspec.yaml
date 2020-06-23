@@ -29,8 +29,8 @@ dependencies:
   syncfusion_flutter_barcodes: ^18.1.52-beta
   flutter_deriv_api:
     git:
-      url: git@github.com:regentmarkets/flutter-deriv-api.git
-      ref: dev
+      url: git@github.com:raminvakili-fs/flutter-deriv-api.git
+      ref: FEATURE/example_app
 
 
 
