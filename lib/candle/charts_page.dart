@@ -9,15 +9,15 @@ import 'package:flutter_deriv_api/api/common/tick/tick_history.dart';
 import 'package:flutter_deriv_api/api/common/tick/tick_history_subscription.dart';
 import 'package:flutter_deriv_api/basic_api/generated/ticks_history_send.dart';
 
-import 'custom_candle_chart.dart';
+import 'charts.dart';
 import '../model/model.dart';
 
-class CandleChartFrame extends StatefulWidget {
+class ChartsPage extends StatefulWidget {
   @override
-  _CandleChartFrameState createState() => _CandleChartFrameState();
+  _ChartsPageState createState() => _ChartsPageState();
 }
 
-class _CandleChartFrameState extends State<CandleChartFrame> {
+class _ChartsPageState extends State<ChartsPage> {
   final List<ChartSampleData> _chartData = <ChartSampleData>[];
   final List<ChartSampleData> _markedData = <ChartSampleData>[];
 
@@ -126,7 +126,7 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
               ? Center(
                   child: Text('Connecting to WS...'),
                 )
-              : CustomCandleChart(
+              : Charts(
                   chartData: _chartData,
                   onZoomStart: () => zooming = true,
                   onZoomEnd: () => zooming = false,
@@ -143,11 +143,15 @@ class _CandleChartFrameState extends State<CandleChartFrame> {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-//                  FlatButton(
-//                    child: Icon(Icons.show_chart),
-//                    onPressed: () {},
-//                    color: Colors.white10,
-//                  ),
+                  FlatButton(
+                    child: Icon(Icons.show_chart),
+                    onPressed: () {
+                      setState(() {
+                        type = 'line';
+                      });
+                    },
+                    color: Colors.white10,
+                  ),
                   FlatButton(
                     child: Icon(Icons.equalizer),
                     onPressed: () {

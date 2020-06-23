@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:syncfusion_features/line/custom_line_series.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 import '../model/model.dart';
 
-class CustomCandleChart extends StatefulWidget {
-  CustomCandleChart({
+class Charts extends StatefulWidget {
+  Charts({
     Key key,
     this.chartData,
     this.markedData,
@@ -27,10 +28,10 @@ class CustomCandleChart extends StatefulWidget {
   final double maxPrice;
 
   @override
-  _CustomCandleChartState createState() => _CustomCandleChartState();
+  _ChartsState createState() => _ChartsState();
 }
 
-class _CustomCandleChartState extends State<CustomCandleChart> {
+class _ChartsState extends State<Charts> {
   ZoomPanArgs _zoomPanArgs = ZoomPanArgs();
 
   @override
@@ -51,9 +52,7 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
   }
 
   Widget _buildMainChart() => SfCartesianChart(
-        annotations: <CartesianChartAnnotation>[
-          _buildATestFlagAnnotation()
-        ],
+        annotations: <CartesianChartAnnotation>[_buildATestFlagAnnotation()],
         plotAreaBorderWidth: 0,
         title:
             ChartTitle(text: 'R_50', textStyle: ChartTextStyle(fontSize: 10)),
@@ -61,7 +60,9 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
         primaryXAxis: _buildPrimaryXAxis(),
         primaryYAxis: _buildPrimaryYAxis(),
         series: <ChartSeries<ChartSampleData, dynamic>>[
-          widget.type == 'candle' ? _getCandleSeries() : _getOHLCSeries(),
+          widget.type == 'candle'
+              ? _getCandleSeries()
+              : widget.type == 'ohlc' ? _getOHLCSeries() : _getLineSeries(),
           _buildMarkerSeries()
         ],
         trackballBehavior: TrackballBehavior(
@@ -87,12 +88,15 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
 
   CartesianChartAnnotation _buildATestFlagAnnotation() {
     return CartesianChartAnnotation(
-          widget: Icon(Icons.flag, color: Colors.white,),
-          coordinateUnit: CoordinateUnit.point,
-          region: AnnotationRegion.chart,
-          y: widget.chartData.first.high,
-          x: widget.chartData.first.epoch,
-        );
+      widget: Icon(
+        Icons.flag,
+        color: Colors.white,
+      ),
+      coordinateUnit: CoordinateUnit.point,
+      region: AnnotationRegion.chart,
+      y: widget.chartData.first.high,
+      x: widget.chartData.first.epoch,
+    );
   }
 
   ChartSeries<ChartSampleData, dynamic> _buildMarkerSeries() =>
@@ -235,4 +239,14 @@ class _CustomCandleChartState extends State<CustomCandleChart> {
             interval: 20,
             axisLine: AxisLine(width: 0))
       ];
+
+  ChartSeries<ChartSampleData, DateTime> _getLineSeries() =>
+      CustomLineSeries<ChartSampleData, DateTime>(
+        animationDuration: 300,
+        color: Colors.white,
+        dataSource: widget.chartData,
+        xValueMapper: (ChartSampleData sales, _) => sales.epoch,
+        yValueMapper: (ChartSampleData sales, _) =>
+            (sales.high + sales.low + sales.open + sales.close) / 4,
+      );
 }
